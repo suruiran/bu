@@ -7,6 +7,9 @@
 .buildlog/
 .history
 
+# idea
+**/.idea/
+**/*.iml
 
 
 # Flutter repo-specific
