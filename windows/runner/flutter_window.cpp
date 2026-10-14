@@ -65,6 +65,11 @@ FlutterWindow::MessageHandler(HWND hwnd, UINT const message,
     case WM_FONTCHANGE:
       flutter_controller_->engine()->ReloadSystemFonts();
       break;
+    case WM_GETMINMAXINFO:
+      MINMAXINFO* mmi = reinterpret_cast<MINMAXINFO*>(lparam);
+      mmi->ptMinTrackSize.x = 360; 
+      mmi->ptMinTrackSize.y = 360; 
+      break;
   }
 
   return Win32Window::MessageHandler(hwnd, message, wparam, lparam);
