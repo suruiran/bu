@@ -1,8 +1,8 @@
 name: bu
-description: "A new Flutter project."
+description: "A customizable I Ching (Yi Jing) divination tool supporting traditional Yarrow and Coin methods with custom weight configuration"
 publish_to: "none"
 
-version: 1.0.0+1
+version: 0.1.0
 
 environment:
   sdk: ^3.13.5
@@ -12,12 +12,41 @@ dependencies:
     sdk: flutter
 
   cupertino_icons: ^1.0.8
+  json_annotation: ^4.12.0
+  flutter_i18n: ^0.37.1
+  url_launcher: ^6.3.3
+  flutter_colorpicker: ^1.1.0
+  path_provider: ^2.1.6
+  path: ^1.9.1
+  flutter_localizations:
+    sdk: flutter
+  share_plus: ^13.3.1
+  uuid: ^4.6.0
+  sensors_plus: ^7.1.1
+  crypto: ^3.0.7
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
 
   flutter_lints: ^6.0.0
+  build_runner: ^2.16.2
+  json_serializable: ^6.14.1
+  flutter_launcher_icons: ^0.14.4
+  flutter_gen_runner: ^5.15.0
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/guas.json
+    - assets/icon.png
+    - assets/i18ns/
+
+flutter_launcher_icons:
+  image_path: "assets/icon.png"
+  android: true
+  ios:
+    remove_alpha_ios: true
+  windwos: true
+  macos:
+    generate: true
