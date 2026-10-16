@@ -4,7 +4,7 @@ import 'package:bu/about.page.dart';
 import 'package:bu/i18n.dart';
 import 'package:bu/page.dart';
 import 'package:bu/schema.dart';
-import 'package:bu/schema.dialog.dart';
+import 'package:bu/schema.editor.dart';
 import 'package:bu/utils/env.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';

@@ -7,16 +7,18 @@ import 'package:bu/binagua.dart';
 import 'package:bu/fs.dart';
 import 'package:bu/i18n.dart';
 import 'package:bu/i18n.dart' as i18n;
+import 'package:bu/modal.dart';
 import 'package:bu/notify.dart';
 import 'package:bu/schema.dart';
 import 'package:bu/settings.dart';
-import 'package:bu/schema.dialog.dart';
+import 'package:bu/schema.editor.dart';
 import 'package:bu/user_behavior.dart';
 import 'package:bu/utils/fmttime.dart';
 import 'package:bu/utils/env.dart';
 import 'package:bu/yao.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_i18n/flutter_i18n.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -107,26 +109,19 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _showSchemaDialog(Schema? schema) async {
     if (!mounted || _loading || _settings == null) return;
-
-    final result = await showDialog<Settings>(
-      context: context,
-      barrierDismissible: true,
-      builder: (cx) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(3)),
-        child: ConstrainedBox(
-          constraints: BoxConstraints(
-            maxWidth: (MediaQuery.sizeOf(context).width * 0.6).clamp(200, 400),
-          ),
-          child: SchemaDialog(schema, _settings!),
-        ),
-      ),
+    final result = await modal<Settings>(
+      context,
+      (MediaQuery.sizeOf(context).width * 0.6).clamp(200, 400),
+      SchemaEditor(schema, _settings!),
     );
     if (!mounted || result == null) return;
+    await _changeSettings(result);
+  }
 
-    await Fs.saveSettings(result.toJson());
-
+  Future<void> _changeSettings(Settings ns) async {
+    await Fs.saveSettings(ns.toJson());
     setState(() {
-      _settings = result;
+      _settings = ns;
       if (_schema != null) {
         _schema = _settings?.schemas.firstWhere(
           (v) => v.uuid == _schema?.uuid,
@@ -370,9 +365,7 @@ class _HomePageState extends State<HomePage> {
       btns.add(_buBtn());
       if (_resultok() && _temp_gua != null) {
         btns.add(_clearBtn());
-        if (!(_settings?.llmConfig.disable ?? false)) {
-          btns.add(_askLLMBtn());
-        }
+        btns.add(_askLLMBtn());
         btns.add(_sharePicBtn());
       }
     }
@@ -462,8 +455,13 @@ class _HomePageState extends State<HomePage> {
         ),
         floatingActionButton: IconButton(
           onPressed: () {
-            Navigator.of(context)
-                .push(MaterialPageRoute(builder: (_) => AboutPage()));
+            if (_settings == null) return;
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) =>
+                    AboutPage(settings: _settings!, update: _changeSettings),
+              ),
+            );
           },
           icon: const Icon(Icons.info_outline),
         ),

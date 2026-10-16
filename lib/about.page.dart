@@ -1,6 +1,9 @@
+import 'package:bu/about.page.advsettings.dart';
 import 'package:bu/gen/assets.gen.dart';
 import 'package:bu/i18n.dart';
 import 'package:bu/i18n.dart' as i18n;
+import 'package:bu/modal.dart';
+import 'package:bu/settings.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_i18n/flutter_i18n.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -16,7 +19,10 @@ final _i18ns = (
 final AboutI18ns = _i18ns;
 
 class AboutPage extends StatelessWidget {
-  const AboutPage({super.key});
+  final Settings settings;
+  final Future<void> Function(Settings) update;
+
+  const AboutPage({super.key, required this.settings, required this.update});
 
   @override
   Widget build(BuildContext context) {
@@ -57,22 +63,42 @@ class AboutPage extends StatelessWidget {
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
                 const SizedBox(height: 8),
-                Text(
-                  FlutterI18n.translate(
-                    context,
-                    _i18ns.License,
-                    translationParams: {"lic": "The Unlicense"},
-                  ),
-                  style: Theme.of(context).textTheme.bodySmall,
+                Row(
+                  mainAxisAlignment: .center,
+                  children: [
+                    TextButton.icon(
+                      onPressed: () => launchUrl(
+                        Uri.parse('http://github.com/suruiran/bu'),
+                        mode: LaunchMode.externalApplication,
+                      ),
+                      icon: const Icon(Icons.open_in_new, size: 16),
+                      label: const Text('GitHub'),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      FlutterI18n.translate(
+                        context,
+                        _i18ns.License,
+                        translationParams: {"lic": "The Unlicense"},
+                      ),
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 8),
                 TextButton.icon(
-                  onPressed: () => launchUrl(
-                    Uri.parse('http://github.com/suruiran/bu'),
-                    mode: LaunchMode.externalApplication,
-                  ),
-                  icon: const Icon(Icons.open_in_new, size: 16),
-                  label: const Text('GitHub'),
+                  onPressed: () async {
+                    final tmp = settings.copy();
+                    final result = await modal(
+                      context,
+                      (MediaQuery.sizeOf(context).width * 0.6).clamp(200, 400),
+                      AdvSettingsDialog(settings: tmp),
+                    );
+                    if (result == null) return;
+                    await update(result);
+                  },
+                  icon: const Icon(Icons.settings, size: 16),
+                  label: const Text('Advanced Settings'),
                 ),
                 exportI18nsBtns(),
               ],

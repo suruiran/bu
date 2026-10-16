@@ -75,9 +75,15 @@ extension _PageLLm on _HomePageState {
     final prompt = buf.toString();
     final url = Uri.tryParse(_settings!.llmConfig.url);
     if (url == null) return;
-    final uri = Uri.https(url.host, url.path, {
-      _settings!.llmConfig.query: prompt,
-    });
+
+    await Clipboard.setData(ClipboardData(text: prompt));
+
+    Map<String, dynamic>? queries;
+    final query = _settings!.llmConfig.query.trim();
+    if (query.isNotEmpty && query != "-") {
+      queries = {query: prompt};
+    }
+    final uri = Uri.https(url.host, url.path, queries);
     if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
       if (!mounted) return;
       notify(

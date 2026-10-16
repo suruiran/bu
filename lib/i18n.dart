@@ -84,13 +84,16 @@ Widget exportI18nsBtns() {
   if (_basePath.isEmpty) {
     return SizedBox.shrink();
   }
-  return TextButton(
-    onPressed: () async {
-      await _exportAllI18nKeysAndSync(SupportedLanguages);
-      // ignore: avoid_print
-      print(">>> EXPORT I18NS DONE <<<");
-    },
-    child: Text("Export I18ns"),
+  return Padding(
+    padding: EdgeInsets.fromLTRB(0, 8, 0, 0),
+    child: TextButton(
+      onPressed: () async {
+        await _exportAllI18nKeysAndSync(SupportedLanguages);
+        // ignore: avoid_print
+        print(">>> EXPORT I18NS DONE <<<");
+      },
+      child: Text("Export I18ns"),
+    ),
   );
 }
 

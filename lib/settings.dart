@@ -6,13 +6,14 @@ import 'package:json_annotation/json_annotation.dart';
 
 part 'settings.g.dart';
 
-typedef LLMConfig = ({bool disable, String url, String query});
+typedef LLMConfig = ({String url, String query});
 
-const LLMConfig defaulLLMCfg = (
-  disable: false,
-  url: "https://chat.deepseek.com/",
-  query: "q",
-);
+const List<LLMConfig> SupportedLLMConfigs = [
+  (url: "https://chat.deepseek.com/", query: "q"),
+  (url: "https://chatgpt.com/", query: "q"),
+  (url: "https://claude.ai/new", query: "q"),
+  (url: "https://grok.com/", query: "q"),
+];
 
 @JsonSerializable(explicitToJson: true)
 class Settings {
@@ -21,7 +22,7 @@ class Settings {
   List<Schema> schemas = [];
 
   @JsonKey(name: "llm.config")
-  LLMConfig llmConfig = defaulLLMCfg;
+  LLMConfig llmConfig = SupportedLLMConfigs.first;
 
   Settings();
 
@@ -51,9 +52,8 @@ class Settings {
     final llm = json['llm.config'];
     if (llm is Map<String, dynamic>) {
       result.llmConfig = (
-        disable: llm['disable'] as bool? ?? defaulLLMCfg.disable,
-        url: llm['url'] as String? ?? defaulLLMCfg.url,
-        query: llm['query'] as String? ?? defaulLLMCfg.query,
+        url: llm['url'] as String? ?? SupportedLLMConfigs.first.url,
+        query: llm['query'] as String? ?? SupportedLLMConfigs.first.query,
       );
     }
     return result._ensure();

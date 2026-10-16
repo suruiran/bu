@@ -14,7 +14,6 @@ Settings _$SettingsFromJson(Map<String, dynamic> json) => Settings()
   ..llmConfig = _$recordConvert(
     json['llm.config'],
     ($jsonValue) => (
-      disable: $jsonValue['disable'] as bool,
       query: $jsonValue['query'] as String,
       url: $jsonValue['url'] as String,
     ),
@@ -24,7 +23,6 @@ Map<String, dynamic> _$SettingsToJson(Settings instance) => <String, dynamic>{
   'language': instance.language,
   'schemas': instance.schemas.map((e) => e.toJson()).toList(),
   'llm.config': <String, dynamic>{
-    'disable': instance.llmConfig.disable,
     'query': instance.llmConfig.query,
     'url': instance.llmConfig.url,
   },

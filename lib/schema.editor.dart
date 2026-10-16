@@ -23,17 +23,17 @@ final SchemaDialogI18ns = _i18ns;
 
 final _uuidgen = Uuid();
 
-class SchemaDialog extends StatefulWidget {
+class SchemaEditor extends StatefulWidget {
   final Schema? _schema;
   final Settings _settings;
 
-  const SchemaDialog(this._schema, this._settings, {super.key});
+  const SchemaEditor(this._schema, this._settings, {super.key});
 
   @override
-  State<SchemaDialog> createState() => _SchemaDialogState();
+  State<SchemaEditor> createState() => _SchemaEditorState();
 }
 
-class _SchemaDialogState extends State<SchemaDialog> {
+class _SchemaEditorState extends State<SchemaEditor> {
   final _formKey = GlobalKey<FormState>();
   late Settings _settings;
   late Schema? _schema;
@@ -47,7 +47,7 @@ class _SchemaDialogState extends State<SchemaDialog> {
   ];
   List<Color> _colors = DefaultYaoColors;
 
-  _SchemaDialogState();
+  _SchemaEditorState();
 
   @override
   void initState() {
@@ -280,13 +280,6 @@ class _SchemaDialogState extends State<SchemaDialog> {
       ),
     );
 
-    return Padding(
-      padding: EdgeInsets.only(
-        bottom: MediaQuery.of(context).viewInsets.bottom,
-      ),
-      child: SingleChildScrollView(
-        child: Column(mainAxisSize: MainAxisSize.min, children: [...eles]),
-      ),
-    );
+    return Column(mainAxisSize: MainAxisSize.min, children: [...eles]);
   }
 }

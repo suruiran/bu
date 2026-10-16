@@ -49,7 +49,7 @@ final _desc = r$desc;
     Set-Content -Path "./lib/about.page.info.g.dart" -Value $content
 }
 
-if ($codes) {
+if ($code) {
     dart run build_runner build
     gen_about_infos
 }
