@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:bu/about.page.advsettings.dart';
 import 'package:bu/about.page.dart';
 import 'package:bu/i18n.dart';
 import 'package:bu/page.dart';
@@ -40,10 +41,12 @@ class _AppState extends State<App> {
 
     if (Env.isDebug) {
       final hcs = [
+        CommonI18ns.hashCode,
         HomePageI18ns.hashCode,
         AskLLMI18ns.hashCode,
         SharePictureI18ns.hashCode,
         AboutI18ns.hashCode,
+        AdvSettingsI18ns.hashCode,
         SchemaDialogI18ns.hashCode,
         SchemaI18ns.hashCode,
       ];

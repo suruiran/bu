@@ -36,7 +36,11 @@ def open_html(name: str, retry_times: int = 0) -> str:
         with open(os.path.join(CACHE, f"{name}.html"), encoding="utf8") as f:
             return f.read()
     except OSError:
-        fetch_gua_html(name)
+        try:
+            fetch_gua_html(name)
+        except requests.HTTPError:
+            ...
+
         rt = retry_times + 1
         if rt > 5:
             raise

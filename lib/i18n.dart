@@ -22,7 +22,7 @@ Future<void> _exportAllI18nKeysAndSync(List<String> languageCodes) async {
 
 const _basePath = String.fromEnvironment('I18N_BASE_PATH');
 
-const _missing_prefix = "__MISSING__:";
+const _missing_prefix = "__MISSING__";
 
 Future<void> _one_language(String lc, List<String> keys) async {
   if (_basePath.isEmpty) {
@@ -48,7 +48,7 @@ Future<void> _one_language(String lc, List<String> keys) async {
   Map<String, String> current = {};
 
   for (var key in keys) {
-    current[key] = prev[key] ?? "$_missing_prefix$key";
+    current[key] = prev[key] ?? _missing_prefix;
   }
 
   await file.writeAsString(const JsonEncoder.withIndent('  ').convert(current));
@@ -105,3 +105,9 @@ String add(String txt) {
   }
   return txt;
 }
+
+final CommonI18ns = (
+  Cancel: add("Cancel"),
+  Del: add("Delete"),
+  Save: add("Save"),
+);

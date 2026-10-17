@@ -11,7 +11,7 @@ Color? parseColor(String v) {
   return Color(iv);
 }
 
-Future<Color> pickColor(BuildContext context, Color val) async {
+Future<Color> pickcolor(BuildContext context, Color val) async {
   Color tmp = val;
   Color result = val;
 

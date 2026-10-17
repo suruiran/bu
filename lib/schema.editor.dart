@@ -14,9 +14,6 @@ final _i18ns = (
   NameIsRequired: i18n.add("name is required"),
   NameAlreadyExists: i18n.add("{name} already exists."),
   SchemaName: i18n.add("Schema name"),
-  Cancel: i18n.add("Cancel"),
-  Del: i18n.add("Delete"),
-  SaveSchema: i18n.add("Save schema"),
   PickColor: i18n.add("Pick color"),
 );
 final SchemaDialogI18ns = _i18ns;
@@ -142,7 +139,7 @@ class _SchemaEditorState extends State<SchemaEditor> {
                 iconSize: 18,
                 tooltip: FlutterI18n.translate(context, _i18ns.PickColor),
                 onPressed: () async {
-                  final pc = await pickColor(context, _colors[i]);
+                  final pc = await pickcolor(context, _colors[i]);
                   setState(() {
                     final ncs = List<Color>.from(_colors);
                     ncs[i] = pc;
@@ -178,9 +175,7 @@ class _SchemaEditorState extends State<SchemaEditor> {
           child: TextFormField(
             initialValue: _name,
             onChanged: (value) {
-              setState(() {
-                _name = value;
-              });
+              _name = value;
             },
             validator: (value) {
               if (value == null || value.trim().isEmpty) {
@@ -222,7 +217,7 @@ class _SchemaEditorState extends State<SchemaEditor> {
           _cancel();
         },
         icon: const Icon(Icons.cancel),
-        label: I18nText(_i18ns.Cancel),
+        label: I18nText(i18n.CommonI18ns.Cancel),
       ),
     ];
 
@@ -235,7 +230,7 @@ class _SchemaEditorState extends State<SchemaEditor> {
             _submit();
           },
           icon: const Icon(Icons.delete),
-          label: I18nText(_i18ns.Del),
+          label: I18nText(i18n.CommonI18ns.Del),
           style: TextButton.styleFrom(
             foregroundColor: Theme.of(context).colorScheme.error,
           ),
@@ -245,7 +240,7 @@ class _SchemaEditorState extends State<SchemaEditor> {
 
     btns.add(
       TextButton.icon(
-        label: I18nText(_i18ns.SaveSchema),
+        label: I18nText(i18n.CommonI18ns.Save),
         onPressed: () {
           if (!(_formKey.currentState?.validate() ?? false)) return;
 

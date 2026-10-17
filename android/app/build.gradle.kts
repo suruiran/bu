@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "com.ruiransoft.bu"
+    namespace = "com.github.suruiran.bu"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -24,6 +24,8 @@ android {
 
     buildTypes {
         release {
+            isMinifyEnabled = true
+            isShrinkResources = true
             signingConfig = signingConfigs.getByName("debug")
         }
     }

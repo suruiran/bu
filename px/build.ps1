@@ -13,7 +13,7 @@ $ErrorActionPreference = 'Stop'
 
 $extraArgs = @()
 
-$symbolPath = Join-Path $PSScriptRoot "build\symbols"
+$symbolPath = Join-Path $PSScriptRoot "symbols"
 if (-not (Test-Path $symbolPath)) {
     New-Item -ItemType Directory -Path $symbolPath -Force | Out-Null
 }

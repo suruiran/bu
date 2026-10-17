@@ -137,15 +137,16 @@ class _UserBehaviorEntropySourceState extends State<UserBehaviorEntropySource> {
     if (_unsubscribeSensors != null) return;
     final List<StreamSubscription<_SensorEvtData>> subs = [];
     final prevAts = List.filled(_streams.length, 0);
+
     for (var stream in _streams) {
       subs.add(
         stream.listen((evt) {
           if (evt.x == 0 && evt.y == 0 && evt.z == 0) return;
-          final prev = prevAts[evt.kind.val - 1];
-          if (_debounce > 0 && evt.at - prev < _debounce) return;
+          final prevAt = prevAts[evt.kind.val - 1];
+          if (_debounce > 0 && evt.at - prevAt < _debounce) return;
           prevAts[evt.kind.val - 1] = evt.at;
 
-          final List<int> bytes = [_EvtKind.mouse.val];
+          final List<int> bytes = [evt.kind.val];
           addInt(bytes, evt.at);
           addDouble(bytes, evt.x);
           if (evt.kind != .barometer) {
@@ -209,7 +210,7 @@ class _UserBehaviorEntropySourceState extends State<UserBehaviorEntropySource> {
 
   void _delReqs(Iterable<_Request> reqs) {
     _reqs.removeAll(reqs);
-    if (reqs.isEmpty) {
+    if (_reqs.isEmpty) {
       if (_unsubscribeSensors != null) {
         _unsubscribeSensors!();
         _unsubscribeSensors = null;

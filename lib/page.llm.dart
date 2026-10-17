@@ -41,7 +41,7 @@ extension _PageLLm on _HomePageState {
         "### ${FlutterI18n.translate(context, _llmi18ns.ChangingLines)}",
       );
       for (var yao in gua.yaos) {
-        buf.writeln(yao.ci);
+        buf.writeln("- ${yao.ci}");
       }
     }
 
@@ -57,7 +57,7 @@ extension _PageLLm on _HomePageState {
 
     buf.writeln();
 
-    final subject = _subject.trim();
+    final subject = _subject_controller.text.trim();
     if (subject.isNotEmpty) {
       buf.writeln("## ${FlutterI18n.translate(context, _llmi18ns.MySubject)}");
       buf.writeln();
@@ -73,18 +73,25 @@ extension _PageLLm on _HomePageState {
     );
 
     final prompt = buf.toString();
-    final url = Uri.tryParse(_settings!.llmConfig.url);
-    if (url == null) return;
+    var url = Uri.tryParse(_settings!.llmConfig.url);
+    if (url == null) {
+      notify(
+        context,
+        FlutterI18n.translate(context, _llmi18ns.AskLLMFailed),
+        kind: NotifyKind.Error,
+      );
+      return;
+    }
 
     await Clipboard.setData(ClipboardData(text: prompt));
 
-    Map<String, dynamic>? queries;
     final query = _settings!.llmConfig.query.trim();
     if (query.isNotEmpty && query != "-") {
-      queries = {query: prompt};
+      final qm = Map.fromEntries(url.queryParameters.entries);
+      qm[query] = prompt;
+      url = url.replace(queryParameters: qm);
     }
-    final uri = Uri.https(url.host, url.path, queries);
-    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+    if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
       if (!mounted) return;
       notify(
         context,

@@ -1,4 +1,4 @@
-package com.ruiransoft.bu
+package com.github.suruiran.bu
 
 import io.flutter.embedding.android.FlutterActivity
 

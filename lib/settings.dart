@@ -8,21 +8,20 @@ part 'settings.g.dart';
 
 typedef LLMConfig = ({String url, String query});
 
-const List<LLMConfig> SupportedLLMConfigs = [
-  (url: "https://chat.deepseek.com/", query: "q"),
-  (url: "https://chatgpt.com/", query: "q"),
-  (url: "https://claude.ai/new", query: "q"),
-  (url: "https://grok.com/", query: "q"),
-];
+const LLMConfig DefaultLLMConfig = (
+  url: "https://chat.deepseek.com/",
+  query: "q",
+);
 
 @JsonSerializable(explicitToJson: true)
 class Settings {
   String? language;
+  bool? showLongPressShareTip;
 
   List<Schema> schemas = [];
 
   @JsonKey(name: "llm.config")
-  LLMConfig llmConfig = SupportedLLMConfigs.first;
+  LLMConfig llmConfig = DefaultLLMConfig;
 
   Settings();
 
@@ -52,10 +51,18 @@ class Settings {
     final llm = json['llm.config'];
     if (llm is Map<String, dynamic>) {
       result.llmConfig = (
-        url: llm['url'] as String? ?? SupportedLLMConfigs.first.url,
-        query: llm['query'] as String? ?? SupportedLLMConfigs.first.query,
+        url: llm['url'] as String? ?? DefaultLLMConfig.url,
+        query: llm['query'] as String? ?? "q",
       );
     }
+
+    final showLongPressShareTipv = json['showLongPressShareTip'];
+    if (showLongPressShareTipv != null &&
+        showLongPressShareTipv is bool &&
+        showLongPressShareTipv) {
+      result.showLongPressShareTip = true;
+    }
+
     return result._ensure();
   }
 

@@ -6,6 +6,9 @@ final _sharei18ns = (
   OpenPicFailed: i18n.add("Open picture failed"),
   SharePicFailed: i18n.add("Share picture failed"),
   SharePic: i18n.add("Share Picture"),
+  LongPressTip: i18n.add(
+    "Long press to hide your text, leaving only the pure hexagram.",
+  ),
 );
 final SharePictureI18ns = _sharei18ns;
 
@@ -22,8 +25,8 @@ extension _PageShare on _HomePageState {
     );
   }
 
-  Future<void> _sharePic() async {
-    if (_temp_gua == null) return;
+  Future<bool?> _sharePic() async {
+    if (_temp_gua == null) return null;
 
     String? fp;
     try {
@@ -31,7 +34,7 @@ extension _PageShare on _HomePageState {
           _rbKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
       final image = await boundary.toImage(pixelRatio: 3.0);
       final pngdata = await image.toByteData(format: ImageByteFormat.png);
-      if (pngdata == null) return;
+      if (pngdata == null) return null;
       final rawdata = pngdata.buffer.asUint8List();
       final nameparts = [fmttime(layout: "YYYYMMDDHHmm"), _temp_gua!.raw.name];
       if (_temp_gua!.changed != null) {
@@ -40,7 +43,7 @@ extension _PageShare on _HomePageState {
       fp = await Fs.savePic("${nameparts.join("_")}.png", rawdata);
     } catch (_) {}
 
-    if (!mounted) return;
+    if (!mounted) return null;
 
     if (fp == null) {
       notify(
@@ -48,14 +51,15 @@ extension _PageShare on _HomePageState {
         FlutterI18n.translate(context, _sharei18ns.GeneratedPictureFailed),
         kind: NotifyKind.Error,
       );
-      return;
+      return null;
     }
 
     if (Env.isMobile) {
-      if (!await _share_for_mobile(fp)) {
+      final ok = await _share_for_mobile(fp);
+      if (ok != null && !ok) {
         _on_share_failed();
       }
-      return;
+      return ok;
     }
 
     notify(
@@ -94,6 +98,7 @@ extension _PageShare on _HomePageState {
         ],
       ),
     );
+    return true;
   }
 
   Future<bool> _share_for_desktop(String fp) async {
@@ -101,16 +106,67 @@ extension _PageShare on _HomePageState {
     return await launchUrl(uri, mode: LaunchMode.externalApplication);
   }
 
-  Future<bool> _share_for_mobile(String fp) async {
+  Future<bool?> _share_for_mobile(String fp) async {
     final result = await SharePlus.instance.share(
       ShareParams(files: [XFile(fp)]),
     );
-    return result.status != ShareResultStatus.unavailable;
+    switch (result.status) {
+      case ShareResultStatus.success:
+        {
+          return true;
+        }
+      case ShareResultStatus.dismissed:
+        {
+          return null;
+        }
+      case ShareResultStatus.unavailable:
+        {
+          return false;
+        }
+    }
   }
 
   Widget _sharePicBtn() {
     return IconButton(
-      onPressed: _sharePic,
+      onPressed: () async {
+        final empty_subject = _subject_controller.text.trim().isEmpty;
+        if (empty_subject) {
+          _updateHideSubject(true);
+          await WidgetsBinding.instance.endOfFrame;
+        }
+        bool? ok;
+        try {
+          ok = await _sharePic();
+        } catch (_) {}
+
+        _updateHideSubject(false);
+
+        if ([
+              !empty_subject,
+              !(_settings?.showLongPressShareTip ?? false),
+              ok != null && ok,
+            ].every((e) => e) &&
+            mounted) {
+          notify(
+            context,
+            FlutterI18n.translate(context, _sharei18ns.LongPressTip),
+            kind: NotifyKind.Info,
+            duration: const Duration(seconds: 12),
+          );
+          final ns = _settings!.copy();
+          ns.showLongPressShareTip = true;
+          await _changeSettings(ns);
+        }
+      },
+      onLongPress: () async {
+        try {
+          _updateHideSubject(true);
+          await WidgetsBinding.instance.endOfFrame;
+          await _sharePic();
+        } finally {
+          _updateHideSubject(false);
+        }
+      },
       icon: const Icon(Icons.ios_share, size: 36),
       tooltip: FlutterI18n.translate(context, _sharei18ns.SharePic),
     );

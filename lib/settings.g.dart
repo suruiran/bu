@@ -8,6 +8,7 @@ part of 'settings.dart';
 
 Settings _$SettingsFromJson(Map<String, dynamic> json) => Settings()
   ..language = json['language'] as String?
+  ..showLongPressShareTip = json['showLongPressShareTip'] as bool?
   ..schemas = (json['schemas'] as List<dynamic>)
       .map((e) => Schema.fromJson(e as Map<String, dynamic>))
       .toList()
@@ -21,6 +22,7 @@ Settings _$SettingsFromJson(Map<String, dynamic> json) => Settings()
 
 Map<String, dynamic> _$SettingsToJson(Settings instance) => <String, dynamic>{
   'language': instance.language,
+  'showLongPressShareTip': instance.showLongPressShareTip,
   'schemas': instance.schemas.map((e) => e.toJson()).toList(),
   'llm.config': <String, dynamic>{
     'query': instance.llmConfig.query,

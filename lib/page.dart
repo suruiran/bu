@@ -63,10 +63,12 @@ class _HomePageState extends State<HomePage> {
 
   final _subject_controller = TextEditingController();
   final _subject_focus_node = FocusNode();
-  String _subject = "";
   String _subjectLabel = _rand_subject_label();
+  bool _hide_subject = false;
 
   Settings? _settings;
+  late ValueNotifier<Settings> _settingsNotifier;
+
   bool _loading = true;
   bool _doing = false;
   int _evtCount = 0;
@@ -86,7 +88,15 @@ class _HomePageState extends State<HomePage> {
   void dispose() {
     _subject_controller.dispose();
     _subject_focus_node.dispose();
+    _settingsNotifier.dispose();
     super.dispose();
+  }
+
+  void _updateHideSubject(bool hide) {
+    if (_hide_subject == hide) return;
+    setState(() {
+      _hide_subject = hide;
+    });
   }
 
   bool _resultok() {
@@ -101,6 +111,7 @@ class _HomePageState extends State<HomePage> {
     setState(() {
       _loading = false;
       _settings = settings;
+      _settingsNotifier = ValueNotifier(settings);
       _schema = settings.schemas.first;
     });
 
@@ -122,13 +133,22 @@ class _HomePageState extends State<HomePage> {
     await Fs.saveSettings(ns.toJson());
     setState(() {
       _settings = ns;
+      _settingsNotifier.value = ns;
+
+      var resetresult = true;
       if (_schema != null) {
         _schema = _settings?.schemas.firstWhere(
           (v) => v.uuid == _schema?.uuid,
           orElse: () => _settings!.schemas.first,
         );
+        if (_schema == null) {
+          resetresult = true;
+        }
       }
-      _result = [0, 0, 0, 0, 0, 0];
+      if (resetresult) {
+        _result = [0, 0, 0, 0, 0, 0];
+        _temp_gua = null;
+      }
     });
   }
 
@@ -167,6 +187,7 @@ class _HomePageState extends State<HomePage> {
     }
 
     setState(() {
+      HapticFeedback.mediumImpact();
       _evtCount = 0;
       _doing = false;
       _temp_gua = _resultok() ? parseGua(_result) : null;
@@ -193,7 +214,7 @@ class _HomePageState extends State<HomePage> {
         style: TextStyle(fontSize: 32, fontWeight: FontWeight.w500),
       ),
     );
-    eles.add(SizedBox(height: 2));
+    eles.add(SizedBox(height: 6));
     eles.add(SelectableText(info.ci));
 
     return Padding(
@@ -252,16 +273,21 @@ class _HomePageState extends State<HomePage> {
       Center(
         child: SizedBox(
           width: (MediaQuery.sizeOf(context).width * 0.6).clamp(0, 640),
-          child: TextField(
-            enabled: !_doing,
-            keyboardType: TextInputType.multiline,
-            minLines: 1,
-            maxLines: 5,
-            controller: _subject_controller,
-            focusNode: _subject_focus_node,
-            onChanged: (value) => _subject = value,
-            decoration: InputDecoration(
-              labelText: FlutterI18n.translate(context, _subjectLabel),
+          child: Visibility(
+            visible: !_hide_subject,
+            maintainSize: true,
+            maintainAnimation: true,
+            maintainState: true,
+            child: TextField(
+              enabled: !_doing,
+              keyboardType: TextInputType.multiline,
+              minLines: 1,
+              maxLines: 3,
+              controller: _subject_controller,
+              focusNode: _subject_focus_node,
+              decoration: InputDecoration(
+                labelText: FlutterI18n.translate(context, _subjectLabel),
+              ),
             ),
           ),
         ),
@@ -458,8 +484,10 @@ class _HomePageState extends State<HomePage> {
             if (_settings == null) return;
             Navigator.of(context).push(
               MaterialPageRoute(
-                builder: (_) =>
-                    AboutPage(settings: _settings!, update: _changeSettings),
+                builder: (_) => AboutPage(
+                  settingsvn: _settingsNotifier,
+                  update: _changeSettings,
+                ),
               ),
             );
           },
