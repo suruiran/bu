@@ -8,7 +8,7 @@ Future<T?> modal<T>(BuildContext context, double width, Widget content) {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(3)),
       child: AnimatedPadding(
         padding: EdgeInsetsGeometry.only(
-          bottom: MediaQuery.viewInsetsOf(context).bottom,
+          bottom: MediaQuery.viewInsetsOf(cx).bottom,
         ),
         duration: const Duration(milliseconds: 200),
         curve: Curves.easeOutCubic,

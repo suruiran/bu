@@ -44,8 +44,6 @@ class _SchemaEditorState extends State<SchemaEditor> {
   ];
   List<Color> _colors = DefaultYaoColors;
 
-  _SchemaEditorState();
-
   @override
   void initState() {
     super.initState();

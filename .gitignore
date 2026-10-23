@@ -123,3 +123,5 @@ app.*.symbols
 
 /pyscripts/.venv
 /pyscripts/caches
+# Widget Preview related
+.widget_preview/

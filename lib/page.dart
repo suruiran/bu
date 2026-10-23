@@ -47,7 +47,7 @@ final _i18ns = (
   EditSchema: i18n.add("Edit schema"),
   Clear: i18n.add("Clear"),
   AddSchema: i18n.add("Add schema"),
-  ShakePhone: i18n.add("Shake your phone or touch anywhere... 🤪"),
+  TouchAnywhere: i18n.add("Touch anywhere... 🤪"),
   WiggleMouse: i18n.add("Wiggle your mouse... 🤪"),
 );
 final HomePageI18ns = _i18ns;
@@ -71,7 +71,7 @@ class _HomePageState extends State<HomePage> {
 
   bool _loading = true;
   bool _doing = false;
-  int _evtCount = 0;
+  final _evtCountNf = ValueNotifier(0);
   final _ubesCtrl = UserBehaviorEntropySourceController();
 
   Schema? _schema;
@@ -89,6 +89,8 @@ class _HomePageState extends State<HomePage> {
     _subject_controller.dispose();
     _subject_focus_node.dispose();
     _settingsNotifier.dispose();
+    _ubesCtrl.dispose();
+    _evtCountNf.dispose();
     super.dispose();
   }
 
@@ -135,13 +137,14 @@ class _HomePageState extends State<HomePage> {
       _settings = ns;
       _settingsNotifier.value = ns;
 
-      var resetresult = true;
+      var resetresult = false;
       if (_schema != null) {
+        final prev_uuid = _schema!.uuid;
         _schema = _settings?.schemas.firstWhere(
           (v) => v.uuid == _schema?.uuid,
           orElse: () => _settings!.schemas.first,
         );
-        if (_schema == null) {
+        if (_schema!.uuid != prev_uuid) {
           resetresult = true;
         }
       }
@@ -158,28 +161,23 @@ class _HomePageState extends State<HomePage> {
 
     final List<int> yaos = [0, 0, 0, 0, 0, 0];
 
+    _evtCountNf.value = 0;
     setState(() {
-      _evtCount = 0;
       _doing = true;
       _result = yaos;
       _temp_gua = null;
     });
 
-    int prevEvtCount = 0;
-
     for (var i = 0; i < 6; i++) {
       final List<int> es = [];
-      final (stream, cancel) = _ubesCtrl.request();
+      final stream = _ubesCtrl.request();
       final subscription = stream.listen((ints) {
+        if (!mounted) return;
         es.addAll(ints);
-        setState(() {
-          _evtCount = es.length + prevEvtCount;
-          prevEvtCount = _evtCount;
-        });
+        _evtCountNf.value++;
       });
       await Future.delayed(const Duration(milliseconds: 600));
       subscription.cancel().ignore();
-      cancel();
       if (!mounted) return;
       setState(() {
         yaos[i] = _schema!.gen(es: es);
@@ -187,11 +185,15 @@ class _HomePageState extends State<HomePage> {
     }
 
     setState(() {
-      HapticFeedback.mediumImpact();
-      _evtCount = 0;
       _doing = false;
-      _temp_gua = _resultok() ? parseGua(_result) : null;
+      _temp_gua = parseGua(_result);
     });
+
+    await WidgetsBinding.instance.endOfFrame;
+    if (!mounted) return;
+
+    HapticFeedback.mediumImpact();
+    SystemSound.play(SystemSoundType.alert);
   }
 
   Widget _buBtn() {
@@ -396,49 +398,41 @@ class _HomePageState extends State<HomePage> {
       }
     }
 
-    final List<Widget> shakingTip = [];
+    final List<Widget> evtsTip = [];
     if (_doing) {
-      shakingTip.add(SizedBox(height: 32));
-      shakingTip.add(
-        TweenAnimationBuilder<double>(
-          key: ValueKey(_evtCount),
-          tween: Tween<double>(begin: 1.0, end: 1.2),
-          duration: const Duration(milliseconds: 100),
-          builder: (ctx, scale, _) {
-            return Transform.scale(
-              scale: scale,
-              alignment: Alignment.center,
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  I18nText(
-                    Env.isMobile ? _i18ns.ShakePhone : _i18ns.WiggleMouse,
-                  ),
-                  _evtCount > 0 ? SizedBox(width: 8) : SizedBox.shrink(),
-                  _evtCount > 0
-                      ? Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 6,
-                            vertical: 2,
+      evtsTip.add(SizedBox(height: 32));
+      evtsTip.add(
+        ValueListenableBuilder(
+          valueListenable: _evtCountNf,
+          builder: (_, ec, _) {
+            return Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                I18nText(
+                  Env.isMobile ? _i18ns.TouchAnywhere : _i18ns.WiggleMouse,
+                ),
+                ec > 0 ? SizedBox(width: 8) : SizedBox.shrink(),
+                ec > 0
+                    ? Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Theme.of(cx).colorScheme.primaryContainer,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Text(
+                          '$ec',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: Theme.of(cx).colorScheme.onPrimaryContainer,
                           ),
-                          decoration: BoxDecoration(
-                            color: Theme.of(ctx).colorScheme.primaryContainer,
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Text(
-                            '$_evtCount',
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                              color: Theme.of(ctx)
-                                  .colorScheme
-                                  .onPrimaryContainer,
-                            ),
-                          ),
-                        )
-                      : SizedBox.shrink(),
-                ],
-              ),
+                        ),
+                      )
+                    : SizedBox.shrink(),
+              ],
             );
           },
         ),
@@ -474,7 +468,7 @@ class _HomePageState extends State<HomePage> {
                 _content(),
                 btns.isNotEmpty ? SizedBox(height: 32) : SizedBox.shrink(),
                 Row(mainAxisAlignment: .center, children: btns),
-                ...shakingTip,
+                ...evtsTip,
               ],
             ),
           ),

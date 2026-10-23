@@ -1,7 +1,7 @@
 import 'dart:math';
+import 'dart:typed_data';
 
 import 'package:bu/colorpick.dart';
-import 'package:bu/utils/int.dart';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
@@ -72,8 +72,8 @@ class Schema {
   }
 
   int gen({List<int>? es}) {
-    final List<int> input = [];
-    input.addAll(intToBytes(Random.secure().nextInt(1 << 32)));
+    final rbs = ByteData(4)..setUint32(0, Random.secure().nextInt(1 << 32));
+    final List<int> input = [...rbs.buffer.asUint8List()];
     if (es != null) {
       input.addAll(es);
     }

@@ -91,10 +91,7 @@ class _AdvSettingsDialogState extends State<AdvSettingsDialog> {
                                 border: UnderlineInputBorder(),
                                 label: I18nText(_i18ns.Url),
                                 suffix: DropdownButton(
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.black,
-                                  ),
+                                  style: TextStyle(fontSize: 12),
                                   value: _llm_name,
                                   items: _llmnames
                                       .map(
