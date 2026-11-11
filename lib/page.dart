@@ -67,7 +67,7 @@ class _HomePageState extends State<HomePage> {
   bool _hide_subject = false;
 
   Settings? _settings;
-  late ValueNotifier<Settings> _settingsNotifier;
+  ValueNotifier<Settings>? _settingsNotifier;
 
   bool _loading = true;
   bool _doing = false;
@@ -88,14 +88,14 @@ class _HomePageState extends State<HomePage> {
   void dispose() {
     _subject_controller.dispose();
     _subject_focus_node.dispose();
-    _settingsNotifier.dispose();
+    _settingsNotifier?.dispose();
     _ubesCtrl.dispose();
     _evtCountNf.dispose();
     super.dispose();
   }
 
   void _updateHideSubject(bool hide) {
-    if (_hide_subject == hide) return;
+    if (!mounted || _hide_subject == hide) return;
     setState(() {
       _hide_subject = hide;
     });
@@ -110,6 +110,7 @@ class _HomePageState extends State<HomePage> {
 
     final settings = Settings.fromJsonSafe(await Fs.loadSettings());
 
+    if (!mounted) return;
     setState(() {
       _loading = false;
       _settings = settings;
@@ -133,9 +134,10 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _changeSettings(Settings ns) async {
     await Fs.saveSettings(ns.toJson());
+    if (!mounted) return;
     setState(() {
       _settings = ns;
-      _settingsNotifier.value = ns;
+      _settingsNotifier?.value = ns;
 
       var resetresult = false;
       if (_schema != null) {
@@ -168,29 +170,35 @@ class _HomePageState extends State<HomePage> {
       _temp_gua = null;
     });
 
-    for (var i = 0; i < 6; i++) {
-      final List<int> es = [];
-      final stream = _ubesCtrl.request();
-      final subscription = stream.listen((ints) {
+    try {
+      for (var i = 0; i < 6; i++) {
+        final List<int> es = [];
+        final stream = _ubesCtrl.request();
+        final subscription = stream.listen((ints) {
+          if (!mounted) return;
+          es.addAll(ints);
+          _evtCountNf.value++;
+        });
+        await Future.delayed(const Duration(milliseconds: 600));
+        subscription.cancel().ignore();
         if (!mounted) return;
-        es.addAll(ints);
-        _evtCountNf.value++;
-      });
-      await Future.delayed(const Duration(milliseconds: 600));
-      subscription.cancel().ignore();
-      if (!mounted) return;
-      setState(() {
-        yaos[i] = _schema!.gen(es: es);
-      });
+        setState(() {
+          yaos[i] = _schema!.gen(es: es);
+        });
+      }
+    } catch (e, s) {
+      debugPrint("bu failed: $e\n$s");
+    } finally {
+      if (mounted) {
+        setState(() {
+          _doing = false;
+          _temp_gua = _resultok() ? parseGua(_result) : null;
+        });
+      }
     }
 
-    setState(() {
-      _doing = false;
-      _temp_gua = parseGua(_result);
-    });
-
     await WidgetsBinding.instance.endOfFrame;
-    if (!mounted) return;
+    if (!mounted || _temp_gua == null) return;
 
     HapticFeedback.mediumImpact();
     SystemSound.play(SystemSoundType.alert);
@@ -475,11 +483,11 @@ class _HomePageState extends State<HomePage> {
         ),
         floatingActionButton: IconButton(
           onPressed: () {
-            if (_settings == null) return;
+            if (_settings == null || _settingsNotifier == null) return;
             Navigator.of(context).push(
               MaterialPageRoute(
                 builder: (_) => AboutPage(
-                  settingsvn: _settingsNotifier,
+                  settingsvn: _settingsNotifier!,
                   update: _changeSettings,
                 ),
               ),

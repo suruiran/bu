@@ -1,0 +1,204 @@
+name: build
+
+on:
+  push:
+    branches:
+      - "**"
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/v') }}
+
+env:
+  FLUTTER_VERSION: "3.47.9"
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Analyze & test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Check format
+        run: dart format --output=none --set-exit-if-changed lib test
+
+      - name: Analyze
+        run: flutter analyze
+
+      - name: Run tests
+        run: flutter test
+
+  build:
+    name: Build ${{ matrix.platform }}
+    if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: android
+            os: ubuntu-latest
+          - platform: windows
+            os: windows-latest
+          - platform: linux
+            os: ubuntu-latest
+          - platform: macos
+            os: macos-latest
+          - platform: web
+            os: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+
+      - name: Setup Java
+        if: matrix.platform == 'android'
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Install Linux build dependencies
+        if: matrix.platform == 'linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build libgtk-3-dev
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Read version
+        id: version
+        shell: bash
+        run: |
+          version="$(sed -n 's/^version: *//p' pubspec.yaml | head -n 1 | cut -d+ -f1)"
+          test -n "$version"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      # Release signing is optional: without the secrets the APK falls back to the
+      # debug key (installable for testing, but not accepted by a store). Both the
+      # keystore and key.properties are gitignored and only exist in the runner.
+      - name: Setup Android signing
+        if: matrix.platform == 'android'
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE }}
+          STORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          if [ -z "$KEYSTORE_BASE64" ] || [ -z "$STORE_PASSWORD" ] || [ -z "$KEY_ALIAS" ] || [ -z "$KEY_PASSWORD" ]; then
+            echo "::warning::Android signing secrets are incomplete; the APK will be signed with the debug key."
+            exit 0
+          fi
+          printf '%s' "$KEYSTORE_BASE64" | base64 --decode > android/app/upload-keystore.jks
+          {
+            printf 'storeFile=upload-keystore.jks\n'
+            printf 'storePassword=%s\n' "$STORE_PASSWORD"
+            printf 'keyAlias=%s\n' "$KEY_ALIAS"
+            printf 'keyPassword=%s\n' "$KEY_PASSWORD"
+          } > android/key.properties
+
+      - name: Build Android APKs
+        if: matrix.platform == 'android'
+        shell: bash
+        run: |
+          flutter build apk --release --split-per-abi
+          mkdir -p dist
+          for apk in build/app/outputs/flutter-apk/app-*-release.apk; do
+            abi="${apk##*/app-}"
+            abi="${abi%-release.apk}"
+            cp "$apk" "dist/bu-${{ steps.version.outputs.version }}-android-${abi}.apk"
+          done
+
+      - name: Build Windows bundle
+        if: matrix.platform == 'windows'
+        shell: pwsh
+        run: |
+          flutter build windows --release
+          New-Item -ItemType Directory -Path dist -Force | Out-Null
+          Compress-Archive -Path build/windows/x64/runner/Release/* `
+            -DestinationPath "dist/bu-${{ steps.version.outputs.version }}-windows-x64.zip"
+
+      - name: Build Linux bundle
+        if: matrix.platform == 'linux'
+        shell: bash
+        run: |
+          flutter build linux --release
+          mkdir -p dist/stage
+          cp -r build/linux/x64/release/bundle dist/stage/bu
+          tar -czf "dist/bu-${{ steps.version.outputs.version }}-linux-x64.tar.gz" -C dist/stage bu
+          rm -rf dist/stage
+
+      - name: Build macOS app
+        if: matrix.platform == 'macos'
+        shell: bash
+        run: |
+          flutter build macos --release
+          mkdir -p dist
+          ditto -c -k --keepParent build/macos/Build/Products/Release/bu.app \
+            "dist/bu-${{ steps.version.outputs.version }}-macos-arm64.zip"
+
+      - name: Build web bundle
+        if: matrix.platform == 'web'
+        shell: bash
+        run: |
+          flutter build web --release
+          mkdir -p dist
+          cd build/web
+          zip -rq "$GITHUB_WORKSPACE/dist/bu-${{ steps.version.outputs.version }}-web.zip" .
+
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: artifact-${{ matrix.platform }}
+          path: ./dist
+          overwrite: true
+
+  release:
+    name: Release
+    needs: [check, build]
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download
+        uses: actions/download-artifact@v4
+        with:
+          path: ./dist/
+          pattern: artifact-*
+          merge-multiple: true
+
+      - name: Generate sha256
+        working-directory: ./dist
+        run: sha256sum ./* > SHA256SUMS
+
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ./dist/*
+          generate_release_notes: true
+          prerelease: ${{ contains(github.ref_name, '-') }}

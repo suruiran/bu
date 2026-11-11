@@ -41,7 +41,9 @@ extension _PageShare on _HomePageState {
         nameparts.add(_temp_gua!.changed!.name);
       }
       fp = await Fs.savePic("${nameparts.join("_")}.png", rawdata);
-    } catch (_) {}
+    } catch (e, s) {
+      debugPrint("generate share picture failed: $e\n$s");
+    }
 
     if (!mounted) return null;
 
@@ -103,7 +105,12 @@ extension _PageShare on _HomePageState {
 
   Future<bool> _share_for_desktop(String fp) async {
     final uri = Uri.file(fp);
-    return await launchUrl(uri, mode: LaunchMode.externalApplication);
+    try {
+      return await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } catch (e, s) {
+      debugPrint("open picture failed: $e\n$s");
+      return false;
+    }
   }
 
   Future<bool?> _share_for_mobile(String fp) async {
@@ -137,7 +144,9 @@ extension _PageShare on _HomePageState {
         bool? ok;
         try {
           ok = await _sharePic();
-        } catch (_) {}
+        } catch (e, s) {
+          debugPrint("share picture failed: $e\n$s");
+        }
 
         _updateHideSubject(false);
 
@@ -163,6 +172,8 @@ extension _PageShare on _HomePageState {
           _updateHideSubject(true);
           await WidgetsBinding.instance.endOfFrame;
           await _sharePic();
+        } catch (e, s) {
+          debugPrint("share picture failed: $e\n$s");
         } finally {
           _updateHideSubject(false);
         }
