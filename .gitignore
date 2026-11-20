@@ -127,3 +127,6 @@ app.*.symbols
 /pyscripts/caches
 # Widget Preview related
 .widget_preview/
+
+
+/px/symbols

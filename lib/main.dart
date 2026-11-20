@@ -7,10 +7,9 @@ import 'package:bu/page.dart';
 import 'package:bu/schema.dart';
 import 'package:bu/schema.editor.dart';
 import 'package:bu/utils/env.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_i18n/flutter_i18n_delegate.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -59,6 +58,11 @@ class _AppState extends State<App> {
   ThemeData _mktheme(Brightness brightness) {
     return ThemeData(
       useMaterial3: true,
+      fontFamilyFallback: const [
+        'Microsoft YaHei',
+        'PingFang SC',
+        'Noto Sans CJK SC',
+      ],
       colorScheme: ColorScheme.fromSeed(
         seedColor: _seedColor,
         brightness: brightness,
@@ -96,9 +100,7 @@ class _AppState extends State<App> {
           missingTranslationHandler: (_, _) {},
           keySeparator: ">>>><<<<",
         ),
-        GlobalMaterialLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
+        ...GlobalMaterialLocalizations.delegates,
       ],
     );
   }

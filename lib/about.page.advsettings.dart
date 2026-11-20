@@ -1,6 +1,6 @@
 import 'package:bu/i18n.dart' as i18n;
 import 'package:bu/settings.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_i18n/flutter_i18n.dart';
 
 final _i18ns = (
@@ -91,7 +91,15 @@ class _AdvSettingsDialogState extends State<AdvSettingsDialog> {
                                 border: UnderlineInputBorder(),
                                 label: I18nText(_i18ns.Url),
                                 suffix: DropdownButton(
-                                  style: TextStyle(fontSize: 12),
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurface,
+                                  ),
+                                  iconEnabledColor: Theme.of(context)
+                                      .colorScheme
+                                      .onSurface,
                                   value: _llm_name,
                                   items: _llmnames
                                       .map(

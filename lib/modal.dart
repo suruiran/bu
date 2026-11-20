@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 Future<T?> modal<T>(BuildContext context, double width, Widget content) {
   return showDialog<T>(
@@ -6,17 +6,10 @@ Future<T?> modal<T>(BuildContext context, double width, Widget content) {
     barrierDismissible: true,
     builder: (cx) => Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(3)),
-      child: AnimatedPadding(
-        padding: EdgeInsetsGeometry.only(
-          bottom: MediaQuery.viewInsetsOf(cx).bottom,
-        ),
-        duration: const Duration(milliseconds: 200),
-        curve: Curves.easeOutCubic,
-        child: SingleChildScrollView(
-          child: ConstrainedBox(
-            constraints: BoxConstraints(maxWidth: width),
-            child: content,
-          ),
+      child: SingleChildScrollView(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxWidth: width),
+          child: content,
         ),
       ),
     ),

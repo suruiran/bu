@@ -23,6 +23,8 @@ dependencies:
   share_plus: ^13.3.1
   uuid: ^4.6.0
   crypto: ^3.0.7
+  material_ui: any
+  cupertino_ui: ^1.1.7
 
 dev_dependencies:
   flutter_test:

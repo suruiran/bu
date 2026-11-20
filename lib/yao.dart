@@ -1,5 +1,5 @@
 import 'package:bu/schema.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 enum YaoType {
   Null(0, isYang: false, isChanging: false),

@@ -1,7 +1,7 @@
 import 'package:bu/colorpick.dart';
 import 'package:bu/schema.dart';
 import 'package:bu/settings.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_i18n/flutter_i18n.dart';
 import 'package:uuid/uuid.dart';
 import 'package:bu/i18n.dart' as i18n;
@@ -51,7 +51,7 @@ class _SchemaEditorState extends State<SchemaEditor> {
     _schema = widget._schema;
     if (_schema != null) {
       _name = _schema!.name;
-      _weights = _schema!.weights;
+      _weights = List.from(_schema!.weights);
       _colors = _schema!.colors ?? DefaultYaoColors;
     }
   }
@@ -201,6 +201,7 @@ class _SchemaEditorState extends State<SchemaEditor> {
         ),
       ),
     ];
+
     eles.addAll([
       const Divider(),
       _buildWeightSlider(0),
@@ -242,6 +243,10 @@ class _SchemaEditorState extends State<SchemaEditor> {
         onPressed: () {
           if (!(_formKey.currentState?.validate() ?? false)) return;
 
+          final idx = _settings.schemas.indexWhere(
+            (e) => e.uuid == _schema?.uuid,
+          );
+
           var uuid = "";
           if (_schema != null) {
             uuid = _schema!.uuid;
@@ -256,8 +261,12 @@ class _SchemaEditorState extends State<SchemaEditor> {
             _weights,
             List<Color>.from(_colors),
           );
-          _settings.schemas.add(ns);
 
+          if (idx >= 0) {
+            _settings.schemas[idx] = ns;
+          } else {
+            _settings.schemas.add(ns);
+          }
           _submit();
         },
         icon: const Icon(Icons.save),

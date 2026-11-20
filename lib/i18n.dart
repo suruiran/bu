@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:bu/utils/env.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_i18n/loaders/file_translation_loader.dart';
 import 'package:flutter_i18n/loaders/translation_loader.dart';
 import 'package:path/path.dart' as plib;

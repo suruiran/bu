@@ -16,7 +16,7 @@ import 'package:bu/user_behavior.dart';
 import 'package:bu/utils/fmttime.dart';
 import 'package:bu/utils/env.dart';
 import 'package:bu/yao.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_i18n/flutter_i18n.dart';

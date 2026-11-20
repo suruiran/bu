@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:flutter_i18n/widgets/i18n_text.dart';
 import 'package:bu/i18n.dart' as i18n;

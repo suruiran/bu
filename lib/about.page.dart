@@ -4,7 +4,7 @@ import 'package:bu/i18n.dart';
 import 'package:bu/i18n.dart' as i18n;
 import 'package:bu/modal.dart';
 import 'package:bu/settings.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_i18n/flutter_i18n.dart';
 import 'package:url_launcher/url_launcher.dart';
 
